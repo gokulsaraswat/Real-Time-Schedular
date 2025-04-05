@@ -89,8 +89,11 @@ RealTimeScheduler/
   - Task status lists
 - `LoggerUtil`: Thread-safe logging utility with file export.
 
-![Architecture Diagram](demo.png)
-<!-- ![Log](demolog.png) -->
+<p align="center">
+  <img src="Media/Demo.png" alt="Execution Logs" width="33%" />
+  <img src="Media/DemoLog.png" alt="Diagram" width="48%" />
+</p>
+
 
 ---
 
