@@ -1,285 +1,196 @@
-# 🕒 Real-Time Scheduler
+# Real-Time Scheduler — Phase 4
 
-A Java-based real-time task scheduling system with a **Swing-based GUI** that supports:
-- **Deadline-aware task execution**
-- **Dynamic task addition**
-- **Live logs**
-- **Visualized Gantt chart**
-- **Performance metrics**
-- **Exportable execution logs**
+A Java 17 desktop scheduler with a Swing dashboard for simulating **priority-based preemptive task execution** on a **single local machine**.
 
-It demonstrates the practical implementation of **preemptive scheduling** based on task priority using **multi-threading** and **PriorityBlockingQueue**.
- 
-Here the goal was to simulate an OS-like preemptive scheduler that can handle multiple tasks with different priorities and execute the highest-priority tasks first useful for systems like:
-- Operating systems (process scheduling)
-- Real-time embedded systems (like drones, robots)
-- Server-side task orchestration
-- IoT devices
+Phase 4 builds on the smarter Phase 3 scheduler core and upgrades the **desktop workflow layer** so the app is easier to operate day to day on a local setup:
+
+- separate **active workspace** and **history** views
+- richer **local notification center**
+- stronger **filters, sorting, and bulk actions**
+- better **task inspection** for live and completed tasks
+- cleaner desktop workflow for a single-machine operator
 
 ---
 
-## 📌 Table of Contents
+## What changed in Phase 4
 
-- [📸 Demo](#-demo)
-- [📋 Features](#-features)
-- [🧠 Architecture](#-architecture)
-- [🧰 Tech Stack](#-tech-stack)
-- [⚙️ Setup Instructions](#️-setup-instructions)
-- [🚀 How to Use](#-how-to-use)
-- [⚙ How It Works](#-how-it-works)
-- [📊 GUI Layout](#-gui-layout)
-- [🧵 Threading Model](#-threading-model)
-- [🛑 Error Handling](#-error-handling)
-- [📦 Class Overview](#-class-overview)
-- [✅ Testing](#-testing)
-- [📤 Export Logs](#-export-logs)
-- [🛠️ Future Enhancements](#️-future-enhancements)
-- [📄 License](#-license)
+### 1) Active workspace vs history
+The dashboard is now split into two clearer views:
+
+- **Active Workspace**
+  - queued, deferred, running, and paused tasks
+  - active-only filters
+  - bulk pause / resume / cancel
+  - selected live task details
+- **History**
+  - completed, missed, and canceled tasks
+  - searchable history
+  - outcome/category filters
+  - history details for completed runs
+
+This keeps operational work separate from historical inspection.
+
+### 2) Notification center
+Phase 4 adds an in-app **notification center** for local monitoring.
+
+It now surfaces alerts for:
+
+- task completion
+- missed deadlines
+- task cancelation
+- pause / resume changes
+- at-risk tasks
+- automatic retry creation
+
+The notification panel supports:
+
+- unread count
+- mark all read
+- clear alerts
+- optional beep on error alerts
+- double-click an alert to jump to the related task
+
+### 3) Better local workflow controls
+The desktop app now supports stronger operator workflows:
+
+- **multi-select** active tasks
+- bulk **pause**
+- bulk **resume**
+- bulk **cancel**
+- quick **Refresh**
+- **Open Data Folder** for local state inspection
+
+Single-task actions still support:
+
+- edit selected
+- retry / clone selected
+
+### 4) Better filters and sorting
+The active view now adds:
+
+- free-text search
+- status filter
+- category filter
+- **max priority** filter
+- **at-risk only** toggle
+
+The history view now adds:
+
+- free-text search
+- outcome filter
+- category filter
+- **recurring / retry only** toggle
+
+Both tables support column sorting directly from the Swing table headers.
+
+### 5) Clearer visual cues
+Phase 4 improves visual scanning on a local desktop:
+
+- live tasks are color-tinted by state
+- at-risk tasks are highlighted
+- history entries are color-coded by outcome
+- progress is shown with an in-table progress bar
+- task details now show start/finish timestamps and richer execution context
+
+### 6) Operational metrics grouped for workflow
+The metrics panel now distinguishes:
+
+- total tasks
+- active workspace count
+- history entry count
+- queue/deferred/running/paused counts
+- completed/missed/canceled counts
+- at-risk tasks
+- retries
+- average wait time
+- on-time rate
+- total preemptions
 
 ---
 
-## 📋 Features
+## Dashboard overview
 
-- ✅ **Multi-threaded real-time task execution**
-- 🛑 **Deadline & interruption-aware scheduler**
-- ✍️ **User can dynamically add new tasks**
-- 📈 **Gantt chart visualization**
-- 📚 **Log Viewer and Exporter**
-- 📉 **Performance Metrics Dashboard**
-- 🔃 **Live updates of task statuses (Completed / Interrupted / Missed)**
+The Swing dashboard now includes:
 
-### ⚙️ Priority-Based Preemptive Scheduling
-- Each task has a priority (e.g., 1 = high, 5 = low). Tasks with higher priority are executed first.
-
-### 🔁 Multi-threaded Execution
-- Utilizes multi-threading to process concurrent tasks and simulate and handle up to **50 concurrent tasks per second**, improving CPU utilization and responsiveness.
-
-### 🔐 PriorityBlockingQueue Integration
-- Tasks are maintained in a thread-safe priority queue, which supports dynamic reordering and blocking for scheduling.
-
-### 📆 Deadline-Aware Execution
-- Ensures **100% deadline adherence** for scheduled tasks, i.e. real-time constraints for high-priority tasks.
-
-### 🔄 Preemptive Simulation
-- If a higher-priority task enters the queue while a lower-priority task is running, the running task is paused or marked as incomplete.
+- **Current Task**
+- **Scheduler Policy**
+- **Local Scheduler Health**
+- **Alerts**
+- **Execution Logs**
+- **Execution Timeline**
+- **Active Workspace**
+- **History**
+- **Selected Active Task**
+- **Selected History Entry**
+- **Add New Task**
+- **Bulk actions**
+- **Open Data Folder**
+- **Export Logs**
 
 ---
 
-## 🧠 Architecture
+## Scheduling behavior
 
-```bash
-RealTimeScheduler/
-│
-├── scheduler/
-│   ├── RealTimeScheduler.java      # Main driver class to run scheduler
-│   ├── ScheduledTask.java          # Task entity with priority, deadline, etc.
-│   ├── TaskExecutor.java           # Executes and manages task threads
-│   ├── LoggerUtil.java             # Thread-safe logging utility
-│   └── utils/                      # Any additional utility classes
-│
-└── README.md
-```
+### Priority rule
+- **1 = highest priority**
+- **10 = lowest priority**
 
-- `RealTimeScheduler`: Core scheduler, prioritizes and executes tasks using a `PriorityBlockingQueue`.
-- `ScheduledTask`: Represents a task with priority, duration, and deadline.
-- `SchedulerDashboard`: Swing GUI that manages:
-  - Gantt chart visualization (`TaskChartPanel`)
-  - Performance metrics (`PerformanceMetricsPanel`)
-  - Log viewer and export
-  - Task status lists
-- `LoggerUtil`: Thread-safe logging utility with file export.
+### Policy modes
+- **Priority First**  
+  Uses priority as the main dispatch rule, while still allowing aging to improve fairness.
 
-<p align="center">
-  <img src="Media/Demo.png" alt="Execution Logs" width="33%" />
-  <img src="Media/DemoLog.png" alt="Diagram" width="48%" />
-</p>
+- **Deadline First**  
+  Prefers the task with the smallest slack / earliest effective deadline pressure.
 
+- **Adaptive**  
+  Blends fairness and urgency by considering:
+  - at-risk deadline status
+  - effective priority after aging
+  - slack
+
+### Automatic retry behavior
+- retries happen only for **MISSED** tasks
+- retry attempts use the configured **backoff**
+- retry attempts are tracked separately from the original task
+- retry policy can be disabled globally from the dashboard
 
 ---
 
-## 🧰 Tech Stack
+## Requirements
 
-| Technology | Usage |
-|-----------|--------|
-| Java 17+ | Core logic and multi-threading |
-| Swing     | Graphical User Interface (GUI) |
-| Collections & Concurrency | PriorityBlockingQueue, Synchronized Lists |
-| Java IO   | Log Exporting |
+- Java 17 or newer
+- VS Code / IntelliJ / Eclipse, or command line
 
 ---
 
-## ⚙️ Setup Instructions
+## How to run
 
-### Prerequisites
-- Java 17 or above
-- IDE (IntelliJ / Eclipse / VSCode) or command-line
+From the project root:
 
-### Steps
-
-1. Clone or Download the Repository:
-```bash
-git clone https://github.com/yourusername/real-time-scheduler.git
-```
-
-2. Compile:
 ```bash
 javac scheduler/*.java
-```
-
-3. Run:
-```bash
 java scheduler.RealTimeScheduler
 ```
 
 ---
 
-## 🚀 How to Use
+## Local data storage
 
-1. On launch, the dashboard appears with:
-   - Execution Logs (center)
-   - Gantt Chart (top)
-   - Performance Metrics (left)
-   - Task Statuses (right)
-   - Add Task Form (bottom)
+Task state is saved locally to:
 
-2. Add a task by filling:
-   - Name
-   - Priority
-   - Duration (ms)
-   - Deadline (timestamp in ms)
-
-3. Use:
-   - 📤 **Export Logs** to save execution history
-   - 📚 **View Logs** to inspect runtime logs
+- `~/.real-time-scheduler/tasks.ser`
+- `~/.real-time-scheduler/scheduler.log`
+- `~/.real-time-scheduler/scheduler-settings.ser`
 
 ---
 
-## ⚙ How It Works
+## Phase 4 focus
 
-1. **Task Submission**:
-   - A task is created with a name, priority, duration, and deadline.
-   - Submitted to the `PriorityBlockingQueue`.
+This phase improves the **desktop workflow and history UX** for local operation.
 
-2. **Scheduling**:
-   - Tasks are polled from the queue.
-   - If a task is executing and a higher-priority task enters, the current task may be preempted.
+The next patch can build on this base with:
 
-3. **Execution**:
-   - Executed in a thread using `ExecutorService`.
-   - Real-time checks for deadline miss or completion.
-
-4. **Logging**:
-   - All operations (start, end, interruptions) are logged via `LoggerUtil`.
-   - All execution logs are saved using `LoggerUtil`
-   - Click on `Export Logs` button to save logs to a file `scheduler_logs.txt` 
-   - Click on `View Logs` to inspect real-time execution in a scrollable window
-
----
-
-## 📊 GUI Layout
-
-```
-+---------------------------------------------------+
-| Task Progress Bar                                 |
-+--------------------+------------------------------+
-| Performance Metrics|                              |
-| - Total Tasks      |      Visual Gantt Chart      |
-| - Completed        |                              |
-| - Interrupted      |------------------------------|
-| - Missed           |      Task Statuses           |
-+--------------------|(Completed|Missed|Interrupted)|
-| Execution Logs     |                              |
-+---------------------------------------------------+
-| Add Task Form + Export Logs + View Logs Buttons   |
-+---------------------------------------------------+
-```
-
----
-
-## 🧵 Threading Model
-- Uses a `FixedThreadPool` via `ExecutorService` to manage concurrency.
-- `PriorityBlockingQueue` ensures thread-safe scheduling and ordering.
-- Threads simulate preemption by checking priorities dynamically and gracefully exiting interrupted tasks.
-
----
-
-## 🛑 Error Handling
-- Validates task input in GUI (e.g., negative duration not allowed).
-- Handles edge cases like:
-  - Missed deadlines
-  - Interrupted tasks
-  - Queue starvation
-  - Long-running tasks
-- Errors are logged with timestamps in `LoggerUtil`.
-
----
-
-## 📦 Class Overview
-
-| Class Name             | Responsibility                          |
-|------------------------|------------------------------------------|
-| `ScheduledTask`        | Represents a task with name, priority, duration, deadline |
-| `RealTimeScheduler`    | Main orchestrator; manages queue, execution, preemption |
-| `TaskExecutor`         | Executes tasks with interruption checks  |
-| `SchedulerDashboard`   | GUI layer (log viewer, Gantt, metrics)   |
-| `LoggerUtil`           | Thread-safe logger with file export      |
-| `TaskChartPanel`       | Custom panel to draw real-time Gantt     |
-
----
-
-## ✅ Testing
-
-Tested with:
-- 0 to 1000 dynamic task insertions
-- Tasks with same deadlines but different priorities
-- Preemption of long-running low-priority tasks
-- Log export and deadline tracking accuracy
-
----
-## 🔍 Comparison with Other Scheduling Systems
-
-| Feature                  | Real-Time Scheduler | OS-Level Scheduler | Cron Jobs     |
-|--------------------------|---------------------|---------------------|---------------|
-| Preemptive Support       | ✅ Yes              | ✅ Yes              | ❌ No         |
-| GUI Dashboard            | ✅ Yes              | ❌ No               | ❌ No         |
-| Real-Time Visualization  | ✅ Yes              | ❌ No               | ❌ No         |
-| Custom Task Addition     | ✅ Yes              | ⚠️ Limited         | ✅ Yes        |
-| Dynamic Priority Control | ✅ Yes              | ✅ Yes              | ❌ No         |
-| Deadline Awareness       | ✅ Yes              | ⚠️ Depends         | ❌ No         |
-| Suitable for Embedded/IoT| ✅ Yes              | ⚠️ Depends         | ❌ No         |
-| Observability Ready      | ✅ Planned          | ⚠️ External Tools  | ⚠️ Minimal    |
-| Exportable Logs          | ✅ Yes              | ⚠️ Limited         | ⚠️ Manual     |
-
----
-
-## 📤 Export Logs
-- All operations (start, end, interruption, deadline miss) are logged.
-- Click `Export Logs` to save to `scheduler_logs.txt`
-- Click `View Logs` to see real-time logs in scrollable UI
-
----
-
-## 🛠️ Future Enhancements
-- [ ] Save/load task queue from file
-- [ ] User preference settings
-- [ ] Historical performance charting
-- [ ] Networked version for remote monitoring
-- [ ] Sound/visual alerts for missed deadlines
-- [ ] Integrate into a Microservice for task orchestration
-- [ ] Add Observability in Microservice: 
-  - Prometheus + Grafana: For performance metrics
-  - Zipkin / Jaeger: For distributed tracing
-  - Micrometer: With Spring Boot for exposing metrics
-  - Keycloak or JWT for secure scheduling endpoints
-
----
-
-> “Scheduling isn't just about running things on time, it's about running the right things at the right time.”
-
----
-
-## 📄 License
-
-This project is open-source and licensed under the [MIT License](LICENSE).
-
-Made with 💻 by Gokul Saraswat
+- exportable reports and richer summaries
+- settings / local quality-of-life polish
+- backup / restore helpers
+- final cleanup and packaging improvements

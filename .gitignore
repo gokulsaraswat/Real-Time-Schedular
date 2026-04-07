@@ -1,0 +1,12 @@
+*.class
+
+# Local compile logs
+compile*.txt
+
+# Patch bundles are for local upgrade workflow, not source
+Patches/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
