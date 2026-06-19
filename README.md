@@ -27,12 +27,20 @@ The current version is focused on a **Phase 4 desktop workflow**:
 
 ---
 
-## Demo
+## Demo 
 
-```markdown
-![Dashboard](Media/Demo.png)
-![Execution Logs](Media/DemoLog.png)
-```
+![Dashboard](Media/Demo.png) 
+![Execution Logs](Media/DemoLog.png) 
+
+### 📺 Watch the Demo Video
+
+[![Watch the video](https://youtube.com)](https://youtube.com)
+
+*Click the image above to watch the project in action on YouTube.*
+
+### 🔗 Connect with Me
+* 🎥 **YouTube Channel:** [Visit My Channel](https://youtube.com)
+
 
 ---
 
